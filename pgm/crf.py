@@ -25,6 +25,32 @@ from scipy.optimize import minimize
 from scipy.special import logsumexp
 
 
+class SparseSeq:
+    """A sequence of tokens each described by a set of active binary features.
+
+    ``tokens[t]`` is an integer array of feature indices that are 1 for token
+    ``t`` (all other features are 0).  This is the natural representation for the
+    sparse, high-dimensional one-hot features used in NLP tagging and lets the
+    CRF avoid ever building the dense ``(T, n_features)`` matrix.
+    """
+
+    __slots__ = ("tokens", "T")
+
+    def __init__(self, tokens: Sequence[np.ndarray]):
+        self.tokens = [np.asarray(t, dtype=np.intp) for t in tokens]
+        self.T = len(self.tokens)
+
+    def __len__(self) -> int:
+        return self.T
+
+
+def _as_features(X):
+    """Coerce input to either a dense float matrix or pass a SparseSeq through."""
+    if isinstance(X, SparseSeq):
+        return X
+    return np.asarray(X, dtype=np.float64)
+
+
 @dataclass
 class LinearChainCRF:
     """A linear-chain CRF with ``n_labels`` states and ``n_features`` node features.
@@ -54,12 +80,30 @@ class LinearChainCRF:
 
     # -- potentials ------------------------------------------------------
     @staticmethod
-    def _node_scores(X: np.ndarray, W: np.ndarray) -> np.ndarray:
+    def _node_scores(X, W: np.ndarray) -> np.ndarray:
         """Log node potentials, shape ``(T, n_labels)``, for one sequence.
 
-        ``X`` is ``(T, n_features)`` (may be sparse-ish 0/1 but stored dense).
+        ``X`` may be either a dense ``(T, n_features)`` 0/1 matrix or a
+        :class:`SparseSeq` (a per-token list of active binary-feature indices).
+        The sparse path avoids materialising the huge feature matrix and is what
+        makes real NLP-scale training tractable on CPU.
         """
+        if isinstance(X, SparseSeq):
+            out = np.empty((X.T, W.shape[1]))
+            for t, idx in enumerate(X.tokens):
+                out[t] = W[idx].sum(axis=0)
+            return out
         return X @ W
+
+    @staticmethod
+    def _accumulate_node_grad(X, diff: np.ndarray, gW: np.ndarray) -> None:
+        """Add ``sum_t feat(x,t) outer (diff[t])`` into ``gW`` in place."""
+        if isinstance(X, SparseSeq):
+            for t, idx in enumerate(X.tokens):
+                # scatter-add the label-vector diff[t] onto each active feature row
+                np.add.at(gW, idx, diff[t])
+        else:
+            gW += X.T @ diff
 
     # -- forward-backward in log space ----------------------------------
     def _forward_backward(
@@ -120,12 +164,10 @@ class LinearChainCRF:
             gold += Tr[y[:-1], y[1:]].sum()
             total_nll += logZ - gold
 
-            # gradient: empirical - expected features
-            # node features: for each t, feature vector X[t] assigned to label y[t]
-            # empirical node grad
+            # gradient: expected - empirical features (for the NLL)
             onehot = np.zeros((T, self.n_labels))
             onehot[np.arange(T), y] = 1.0
-            gW += X.T @ (node_marg - onehot)  # expected - empirical (for NLL)
+            self._accumulate_node_grad(X, node_marg - onehot, gW)
             # transition grad
             emp_T = np.zeros_like(Tr)
             np.add.at(emp_T, (y[:-1], y[1:]), 1.0)
@@ -145,8 +187,11 @@ class LinearChainCRF:
         max_iter: int = 200,
         verbose: bool = False,
     ) -> "LinearChainCRF":
-        """Train by L-BFGS on the regularised conditional log-likelihood."""
-        seqs = [(np.asarray(X, dtype=np.float64), np.asarray(y, dtype=int)) for X, y in seqs]
+        """Train by L-BFGS on the regularised conditional log-likelihood.
+
+        Each ``X`` may be a dense 0/1 matrix or a :class:`SparseSeq`.
+        """
+        seqs = [(_as_features(X), np.asarray(y, dtype=int)) for X, y in seqs]
         theta0 = np.zeros(self.n_W + self.n_T)
         history: List[float] = []
 
@@ -170,10 +215,9 @@ class LinearChainCRF:
         self.history = history
         return self
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
+    def predict(self, X) -> np.ndarray:
         """Viterbi decode the most likely label sequence for one sequence."""
-        X = np.asarray(X, dtype=np.float64)
-        node = self._node_scores(X, self.W)
+        node = self._node_scores(_as_features(X), self.W)
         T, L = node.shape
         delta = np.zeros((T, L))
         psi = np.zeros((T, L), dtype=int)
@@ -196,12 +240,12 @@ class LinearChainCRF:
         total = 0
         total_ll = 0.0
         for X, y in seqs:
-            X = np.asarray(X, dtype=np.float64)
+            Xf = _as_features(X)
             y = np.asarray(y, dtype=int)
-            pred = self.predict(X)
+            pred = self.predict(Xf)
             correct += int((pred == y).sum())
             total += len(y)
-            node = self._node_scores(X, self.W)
+            node = self._node_scores(Xf, self.W)
             logZ, _, _ = self._forward_backward(node, self.Tr)
             gold = node[np.arange(len(y)), y].sum() + self.Tr[y[:-1], y[1:]].sum()
             total_ll += gold - logZ

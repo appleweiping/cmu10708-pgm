@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from pgm.crf import LinearChainCRF
+from pgm.crf import LinearChainCRF, SparseSeq
 
 
 def make_toy_data(rng, n_seqs=20, T=6, n_features=5, n_labels=3):
@@ -46,6 +46,26 @@ def test_analytic_gradient_matches_finite_difference():
         fm, _ = crf._nll_and_grad(tm, seqs)
         num_grad[i] = (fp - fm) / (2 * eps)
     assert np.allclose(grad, num_grad, atol=1e-5), np.abs(grad - num_grad).max()
+
+
+def test_sparse_matches_dense():
+    """SparseSeq features must give identical scores/gradients to the dense path."""
+    rng = np.random.default_rng(3)
+    n_features, n_labels = 6, 3
+    crf = LinearChainCRF(n_features=n_features, n_labels=n_labels, l2=0.5)
+    dense_seqs, sparse_seqs = [], []
+    for _ in range(4):
+        T = rng.integers(3, 7)
+        X = (rng.random((T, n_features)) < 0.4).astype(float)
+        y = rng.integers(0, n_labels, size=T)
+        dense_seqs.append((X, y))
+        tokens = [np.where(X[t] > 0)[0] for t in range(T)]
+        sparse_seqs.append((SparseSeq(tokens), y))
+    theta = rng.standard_normal(crf.n_W + crf.n_T) * 0.3
+    nll_d, g_d = crf._nll_and_grad(theta, [(np.asarray(X), np.asarray(y)) for X, y in dense_seqs])
+    nll_s, g_s = crf._nll_and_grad(theta, sparse_seqs)
+    assert nll_d == pytest.approx(nll_s, abs=1e-10)
+    assert np.allclose(g_d, g_s, atol=1e-10)
 
 
 def test_crf_learns_separable_pattern():

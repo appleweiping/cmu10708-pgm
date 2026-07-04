@@ -14,5 +14,6 @@ and is exercised by unit tests in ``tests/`` and the per-homework runners.
 """
 
 from .factor import Factor
+from .crf import LinearChainCRF, SparseSeq
 
-__all__ = ["Factor"]
+__all__ = ["Factor", "LinearChainCRF", "SparseSeq"]
