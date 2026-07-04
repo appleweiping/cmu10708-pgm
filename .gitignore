@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Data caches (datasets are downloaded at runtime)
+data/*
+!data/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large binaries / scratch
+*.pkl
+*.npz
+scratch/
