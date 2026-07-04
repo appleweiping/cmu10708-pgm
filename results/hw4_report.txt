@@ -1,0 +1,29 @@
+================================================================
+HW4: Mean-field variational inference for the Ising model
+================================================================
+
+[part 1] 16x16 grid, J=0.25, random field
+  mean-field converged in 211 iterations
+  ELBO monotone non-decreasing: True  (min step -5.68e-14)
+  final ELBO (lower bound on log Z) = 193.0037
+  mean marginal P(x=+1) over grid = 0.5065
+  [write] results/hw4_elbo.png
+
+[part 2] mean-field vs EXACT and Gibbs as coupling J grows (4x4 grid)
+  (mean-field is expected to degrade as J increases toward the
+   ferromagnetic phase transition)
+
+    J      MF_err   Gibbs_err   exact_logZ   MF_ELBO   gap
+   0.05   0.0007   0.0041     11.2136   11.1844  0.0292
+   0.10   0.0041   0.0053     11.3211   11.2050  0.1161
+   0.15   0.0141   0.0057     11.4955   11.2377  0.2578
+   0.20   0.0398   0.0046     11.7411   11.2967  0.4444
+   0.30   0.1571   0.0040     12.4693   11.6863  0.7829
+   0.40   0.1855   0.0073     13.5572   12.8085  0.7487
+   0.50   0.1447   0.0042     15.0310   14.5147  0.5163
+   0.70   0.0749   0.0082     18.9055   18.7218  0.1837
+
+  [write] results/hw4_mf_vs_exact.png
+
+  observation: mean-field error and the ELBO gap both grow with J,
+  while Gibbs stays accurate -- exactly the textbook behaviour.
