@@ -1,0 +1,18 @@
+
+================================================================
+HW2b: Unsupervised parameter learning with Baum-Welch (EM)
+================================================================
+  generated 200 sequences of length 50 from a known 2-state / 3-symbol HMM
+  EM ran 200 iterations
+  initial total loglik = -14116.53
+  final   total loglik = -10634.60
+  monotonic increase: True  (min step 1.60e-03)
+  loglik under TRUE params = -10639.55
+
+  recovered emission matrix B (rows=state, aligned to truth):
+    true      : [[0.7, 0.2, 0.1], [0.1, 0.3, 0.6]]
+    learned   : [[0.694, 0.204, 0.102], [0.069, 0.316, 0.615]]
+    max |B_true - B_learned| = 0.031
+    max |A_true - A_learned| = 0.031
+
+  [write] results/hw2_em_loglik.png

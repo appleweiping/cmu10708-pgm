@@ -1,0 +1,38 @@
+================================================================
+HW2a: Supervised HMM POS tagging on the Brown corpus
+================================================================
+  sentences: 8000  (train 6400, test 1600)
+  states (POS tags): 12   vocabulary (incl <UNK>): 6079
+
+  token-level Viterbi accuracy on held-out test = 0.9400
+  (32374/34441 tokens correct)
+
+  per-tag recall (Viterbi):
+    .     : recall 1.000  (support 4023)
+    ADJ   : recall 0.850  (support 2480)
+    ADP   : recall 0.970  (support 4273)
+    ADV   : recall 0.835  (support 1369)
+    CONJ  : recall 0.999  (support 994)
+    DET   : recall 0.991  (support 3984)
+    NOUN  : recall 0.950  (support 9736)
+    NUM   : recall 0.844  (support 642)
+    PRON  : recall 0.981  (support 1010)
+    PRT   : recall 0.856  (support 783)
+    VERB  : recall 0.888  (support 5130)
+    X     : recall 0.471  (support 17)
+
+  example decoded sentence (word / gold / pred):
+    the            DET    DET   
+    two            NUM    NUM   
+    had            VERB   VERB  
+    been           VERB   VERB  
+    <UNK>          VERB   NOUN    <-- wrong
+    in             ADP    ADP   
+    the            DET    DET   
+    <UNK>          NOUN   ADJ     <-- wrong
+    area           NOUN   NOUN  
+    of             ADP    ADP   
+    town           NOUN   NOUN  
+    and            CONJ   CONJ  
+
+  [write] results/hw2_pos_confusion.png
