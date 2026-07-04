@@ -1,0 +1,36 @@
+================================================================
+HW1: Exact inference on the ASIA Bayesian network
+================================================================
+
+[check] variable elimination vs exhaustive enumeration (prior):
+  P(asia    =yes) = 0.01000   (|VE - brute| = 1.73e-18)
+  P(tub     =yes) = 0.01040   (|VE - brute| = 5.20e-18)
+  P(smoke   =yes) = 0.50000   (|VE - brute| = 1.11e-16)
+  P(lung    =yes) = 0.05500   (|VE - brute| = 1.39e-17)
+  P(bronc   =yes) = 0.45000   (|VE - brute| = 1.11e-16)
+  P(either  =yes) = 0.06483   (|VE - brute| = 4.16e-17)
+  P(xray    =yes) = 0.11029   (|VE - brute| = 5.55e-17)
+  P(dysp    =yes) = 0.43887   (|VE - brute| = 1.11e-16)
+  max |VE - exhaustive| over all variables = 1.11e-16
+
+[query] posteriors given evidence {'dysp': 1, 'xray': 1}:
+  P(tub     =yes | evidence) = 0.11716   (prior 0.01040)
+  P(lung    =yes | evidence) = 0.62858   (prior 0.05500)
+  P(bronc   =yes | evidence) = 0.65553   (prior 0.45000)
+  P(smoke   =yes | evidence) = 0.78442   (prior 0.50000)
+  P(asia    =yes | evidence) = 0.01411   (prior 0.01000)
+
+[compare] loopy belief propagation vs exact VE (prior marginals):
+  loopy BP ran 27 iterations
+  P(asia    =yes): VE=0.01000  BP=0.01000  |diff|=3.77e-15
+  P(tub     =yes): VE=0.01040  BP=0.01040  |diff|=1.32e-14
+  P(smoke   =yes): VE=0.50000  BP=0.50000  |diff|=0.00e+00
+  P(lung    =yes): VE=0.05500  BP=0.05500  |diff|=3.39e-15
+  P(bronc   =yes): VE=0.45000  BP=0.45000  |diff|=3.33e-16
+  P(either  =yes): VE=0.06483  BP=0.06483  |diff|=7.01e-13
+  P(xray    =yes): VE=0.11029  BP=0.11029  |diff|=1.70e-11
+  P(dysp    =yes): VE=0.43887  BP=0.44288  |diff|=4.01e-03
+  max |BP - VE| = 4.01e-03
+
+[write] D:\Project\advanced-ml\cmu10708-pgm\results\hw1_marginals.csv
+[write] D:\Project\advanced-ml\cmu10708-pgm\results\hw1_ve_vs_bp.png
