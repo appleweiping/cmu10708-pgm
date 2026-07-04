@@ -1,0 +1,31 @@
+================================================================
+HW5: Linear-chain CRF for POS tagging (Brown corpus)
+================================================================
+  sentences: 4000 (train 3200, test 800)
+  labels: 12   CRF features: 8426
+
+  training CRF with L-BFGS (max 60 iters)...
+  L-BFGS finished: 60 iters, success=False
+  objective (neg cond. loglik) start=175059.2 end=10291.9
+
+  [CRF] token accuracy on test = 0.9542
+  [CRF] mean conditional log-likelihood / token = -0.1308
+
+  [HMM baseline] token accuracy on same split = 0.9331
+  ==> CRF improves over HMM by +2.11 percentage points
+
+  example CRF decode (gold / pred over first 12 tokens):
+    However        ADV    ADV   
+    ,              .      .     
+    Mr.            NOUN   NOUN  
+    Parichy        NOUN   NOUN  
+    and            CONJ   CONJ  
+    his            DET    DET   
+    bride          NOUN   NOUN  
+    will           VERB   VERB  
+    go             VERB   VERB  
+    to             ADP    ADP   
+    Vero           NOUN   NOUN  
+    Beach          NOUN   NOUN  
+
+  [write] results/hw5_crf_training.png
