@@ -1,0 +1,16 @@
+================================================================
+HW3: Gibbs sampling (MCMC) for binary image denoising
+================================================================
+  image (64, 64), injected bit-flip noise p = 0.15
+  noisy image pixel error rate = 0.1543
+  Ising prior: J = 1.0, observation coupling eta = 1.0
+
+  [Gibbs] 400 sweeps (100 burn-in)
+  [Gibbs] denoised pixel error rate = 0.0127
+  [Gibbs] corrected 580 pixel errors
+
+  [MeanField] 200 iterations, final ELBO = 10403.02
+  [MeanField] denoised pixel error rate = 0.0095
+
+  [write] results/hw3_denoise.png
+  [write] results/hw3_mag_trace.png
